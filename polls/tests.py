@@ -7,15 +7,11 @@ from django.urls import reverse
 from .models import Question
 
 def create_question(question_text, days):
-    """
-    Create a question with the given `question_text` and published the
-    given number of `days` offset to now (negative for questions published
-    in the past, positive for questions that have yet to be published).
-    """
     time = timezone.now() + datetime.timedelta(days=days)
     return Question.objects.create(question_text=question_text, pub_date=time)
 
-#  Created a django.test.TestCase subclass with a method that creates a Question instance with a pub_date in the future
+#  Created a django.test.TestCase subclass with a method that creates a Question instance 
+
 # index view tests
 class QuestionIndexViewTests(TestCase):
     def test_no_questions(self):
@@ -95,3 +91,15 @@ class QuestionDetailViewTests(TestCase):
         url = reverse('polls:detail', args=(past_question.id,))
         response = self.client.get(url)
         self.assertContains(response, past_question.question_text)
+
+# results view tests
+class QuestionResultsViewTests(TestCase):
+    def test_results(self):
+        """
+        Tests that the results view returns a 200 status (it should still pass even if votes are 0) and the asked question
+        """
+        past_question = create_question(question_text='Past question.', days=-5)
+        url = reverse('polls:results', args=(past_question.id,))
+        response = self.client.get(url)
+        self.assertContains(response, past_question.question_text)
+        self.assertEqual(response.status_code, 200)
